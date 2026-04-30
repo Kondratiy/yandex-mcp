@@ -34,8 +34,7 @@ def register(mcp: FastMCP) -> None:
         """
         try:
             result = await api_client.metrika_request(
-                f"/management/v1/counter/{params.counter_id}/grants"
-            )
+                f"/management/v1/counter/{params.counter_id}/grants")
 
             grants = result.get("grants", [])
 
@@ -78,8 +77,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/grants",
                 method="POST",
-                data=data
-            )
+                data=data)
 
             grant = result.get("grant", {})
 
@@ -120,8 +118,7 @@ def register(mcp: FastMCP) -> None:
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/grant/{params.user_login}",
                 method="PUT",
-                data=data
-            )
+                data=data)
 
             return f"Access grant for {params.user_login} updated successfully."
 
@@ -143,8 +140,7 @@ def register(mcp: FastMCP) -> None:
         try:
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/grant/{params.user_login}",
-                method="DELETE"
-            )
+                method="DELETE")
 
             return f"Access for {params.user_login} revoked successfully."
 

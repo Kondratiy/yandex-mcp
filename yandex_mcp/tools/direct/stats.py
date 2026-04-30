@@ -39,10 +39,25 @@ def register(mcp: FastMCP) -> None:
         - SEARCH_QUERY_PERFORMANCE_REPORT - Search query stats
 
         Common fields:
-        - CampaignName, CampaignId - Campaign info
+        - CampaignName, CampaignId, CampaignType - Campaign info
+        - AdId, AdGroupId, AdGroupName, AdFormat - Ad/group info
         - Impressions, Clicks, Cost - Basic metrics
         - Ctr, AvgCpc, ConversionRate - Calculated metrics
-        - Date - For daily breakdown
+        - Conversions, CostPerConversion, Revenue - Conversion metrics
+        - Date, Month, Quarter, Year - Time breakdown
+
+        Per-goal conversions:
+        To get conversions broken down by Metrika goal, pass goal IDs
+        in the 'goals' parameter and include Conversions/CostPerConversion/Revenue
+        in field_names. The API will return columns like:
+          Conversions_<GoalId>_<Attribution> (e.g. Conversions_155538619_LSC)
+          CostPerConversion_<GoalId>_<Attribution>
+          Revenue_<GoalId>_<Attribution>
+
+        Example: goals=[155538619, 326960392] with field_names=["CampaignId", "Conversions", "CostPerConversion"]
+        → columns: Conversions_155538619_LSC, Conversions_326960392_LSC, CostPerConversion_155538619_LSC, ...
+
+        Attribution suffix: LSC = Last Significant Click, FC = First Click, LC = Last Click.
         """
         try:
             # Build report definition
@@ -60,6 +75,9 @@ def register(mcp: FastMCP) -> None:
                 "IncludeDiscount": "NO"
             }
 
+            if params.goals:
+                report_def["Goals"] = params.goals
+
             if params.campaign_ids:
                 report_def["SelectionCriteria"]["Filter"] = [{
                     "Field": "CampaignId",
@@ -67,12 +85,11 @@ def register(mcp: FastMCP) -> None:
                     "Values": [str(cid) for cid in params.campaign_ids]
                 }]
 
-            # Get Direct token
-            token = api_client._get_direct_token()
-            if not token:
-                raise ValueError("Yandex Direct API token not configured.")
+            # Resolve account and get its credentials
+            cfg = api_client._resolve_account(params.account)
+            token = cfg.direct_token
 
-            url = f"{api_client._get_direct_url()}/reports"
+            url = f"{api_client._get_direct_url(cfg.use_sandbox)}/reports"
             headers = {
                 "Authorization": f"Bearer {token}",
                 "Accept-Language": "ru",
@@ -84,8 +101,8 @@ def register(mcp: FastMCP) -> None:
                 "skipReportSummary": "true"
             }
 
-            if api_client.client_login:
-                headers["Client-Login"] = api_client.client_login
+            if cfg.client_login:
+                headers["Client-Login"] = cfg.client_login
 
             max_attempts = 10
             response = None

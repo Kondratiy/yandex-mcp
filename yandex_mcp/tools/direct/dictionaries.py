@@ -1,6 +1,8 @@
 """Yandex Direct dictionaries tools."""
 
 import json
+from typing import Optional
+
 from mcp.server.fastmcp import FastMCP
 
 from ...client import api_client
@@ -41,7 +43,7 @@ def register(mcp: FastMCP) -> None:
                 "DictionaryNames": params.dictionary_names
             }
 
-            result = await api_client.direct_request("dictionaries", "get", request_params)
+            result = await api_client.direct_request("dictionaries", "get", request_params, account=params.account)
             data = result.get("result", {})
 
             if params.response_format == ResponseFormat.JSON:
@@ -100,7 +102,8 @@ def register(mcp: FastMCP) -> None:
                 lines.append("## Interest Categories\n")
                 for interest in data["Interests"][:30]:
                     parent = f" (Parent: {interest.get('ParentId')})" if interest.get('ParentId') else ""
-                    lines.append(f"- **{interest.get('InterestName')}** (ID: {interest.get('InterestId')}){parent}")
+                    # API returns the field as "Name", not "InterestName".
+                    lines.append(f"- **{interest.get('Name')}** (ID: {interest.get('InterestId')}){parent}")
                 if len(data["Interests"]) > 30:
                     lines.append(f"\n... and {len(data['Interests']) - 30} more interests")
                 lines.append("")
@@ -127,7 +130,10 @@ def register(mcp: FastMCP) -> None:
             "openWorldHint": False
         }
     )
-    async def direct_get_regions(response_format: ResponseFormat = ResponseFormat.MARKDOWN) -> str:
+    async def direct_get_regions(
+        response_format: ResponseFormat = ResponseFormat.MARKDOWN,
+        account: Optional[str] = None,
+    ) -> str:
         """Get geographic regions for targeting.
 
         Returns list of regions with IDs for use in geo-targeting.
@@ -138,7 +144,7 @@ def register(mcp: FastMCP) -> None:
                 "DictionaryNames": ["GeoRegions"]
             }
 
-            result = await api_client.direct_request("dictionaries", "get", request_params)
+            result = await api_client.direct_request("dictionaries", "get", request_params, account=account)
             regions = result.get("result", {}).get("GeoRegions", [])
 
             if response_format == ResponseFormat.JSON:
@@ -180,7 +186,10 @@ def register(mcp: FastMCP) -> None:
             "openWorldHint": False
         }
     )
-    async def direct_get_interests(response_format: ResponseFormat = ResponseFormat.MARKDOWN) -> str:
+    async def direct_get_interests(
+        response_format: ResponseFormat = ResponseFormat.MARKDOWN,
+        account: Optional[str] = None,
+    ) -> str:
         """Get interest categories for targeting.
 
         Returns list of interests for use in audience targeting.
@@ -190,7 +199,7 @@ def register(mcp: FastMCP) -> None:
                 "DictionaryNames": ["Interests"]
             }
 
-            result = await api_client.direct_request("dictionaries", "get", request_params)
+            result = await api_client.direct_request("dictionaries", "get", request_params, account=account)
             interests = result.get("result", {}).get("Interests", [])
 
             if response_format == ResponseFormat.JSON:
@@ -212,10 +221,11 @@ def register(mcp: FastMCP) -> None:
             lines = ["# Interest Categories\n"]
             for root in root_interests:
                 rid = root.get("InterestId")
-                lines.append(f"## {root.get('InterestName')} (ID: {rid})")
+                # API field name is "Name", not "InterestName".
+                lines.append(f"## {root.get('Name')} (ID: {rid})")
                 if rid in child_map:
                     for child in child_map[rid]:
-                        lines.append(f"  - {child.get('InterestName')} (ID: {child.get('InterestId')})")
+                        lines.append(f"  - {child.get('Name')} (ID: {child.get('InterestId')})")
                 lines.append("")
 
             return "\n".join(lines)

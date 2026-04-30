@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 
 from ...client import api_client
+from ...models.common import AccountInput
 from ...utils import handle_api_error
 from ._helpers import register_manage_tool
 
@@ -17,7 +18,7 @@ class SmartAdTargetCondition(BaseModel):
     arguments: List[str] = Field(..., description="Values to match (max 50). For IN_RANGE use 'min-max' format.")
 
 
-class AddSmartAdTargetInput(BaseModel):
+class AddSmartAdTargetInput(AccountInput):
     """Input for adding a smart ad target (filter)."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -30,7 +31,7 @@ class AddSmartAdTargetInput(BaseModel):
     )
 
 
-class GetSmartAdTargetsInput(BaseModel):
+class GetSmartAdTargetsInput(AccountInput):
     """Input for getting smart ad targets."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -40,7 +41,7 @@ class GetSmartAdTargetsInput(BaseModel):
     limit: int = Field(default=100, ge=1, le=10000)
 
 
-class ManageSmartAdTargetsInput(BaseModel):
+class ManageSmartAdTargetsInput(AccountInput):
     """Input for managing smart ad targets."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -86,7 +87,7 @@ def register(mcp: FastMCP) -> None:
 
             request_params = {"SmartAdTargets": [target]}
 
-            result = await api_client.direct_request("smartadtargets", "add", request_params)
+            result = await api_client.direct_request("smartadtargets", "add", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -131,11 +132,15 @@ def register(mcp: FastMCP) -> None:
 
             request_params = {
                 "SelectionCriteria": selection_criteria,
-                "FieldNames": ["Id", "AdGroupId", "CampaignId", "Name", "State", "Status", "AvailableItemsOnly"],
+                # Yandex API spec for smartadtargets/get: Status is NOT a valid field
+                # (only State exists). Allowed: Id, AdGroupId, CampaignId, Name,
+                # AverageCpc, AverageCpa, StrategyPriority, Conditions, ConditionType,
+                # State, Audience, AvailableItemsOnly.
+                "FieldNames": ["Id", "AdGroupId", "CampaignId", "Name", "State", "AvailableItemsOnly"],
                 "Page": {"Limit": params.limit}
             }
 
-            result = await api_client.direct_request("smartadtargets", "get", request_params)
+            result = await api_client.direct_request("smartadtargets", "get", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -152,7 +157,6 @@ def register(mcp: FastMCP) -> None:
                 lines.append(f"- **AdGroup**: {t.get('AdGroupId')}")
                 lines.append(f"- **Campaign**: {t.get('CampaignId')}")
                 lines.append(f"- **State**: {t.get('State')}")
-                lines.append(f"- **Status**: {t.get('Status')}")
                 lines.append(f"- **Available Only**: {t.get('AvailableItemsOnly')}")
                 conditions = t.get("Conditions", [])
                 if conditions:

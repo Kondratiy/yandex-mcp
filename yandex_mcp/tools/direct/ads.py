@@ -62,7 +62,7 @@ def register(mcp: FastMCP) -> None:
                 }
             }
 
-            result = await api_client.direct_request("ads", "get", request_params)
+            result = await api_client.direct_request("ads", "get", request_params, account=params.account)
 
             # Check for API error
             if "error" in result:
@@ -117,7 +117,7 @@ def register(mcp: FastMCP) -> None:
                 "Ads": [ad]
             }
 
-            result = await api_client.direct_request("ads", "add", request_params)
+            result = await api_client.direct_request("ads", "add", request_params, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             if add_results and add_results[0].get("Id"):
@@ -160,7 +160,7 @@ def register(mcp: FastMCP) -> None:
 
             request_params = {"Ads": [ad]}
 
-            result = await api_client.direct_request("ads", "add", request_params)
+            result = await api_client.direct_request("ads", "add", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -215,7 +215,7 @@ def register(mcp: FastMCP) -> None:
 
             request_params = {"Ads": [ad]}
 
-            result = await api_client.direct_request("ads", "add", request_params)
+            result = await api_client.direct_request("ads", "add", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -287,7 +287,7 @@ def register(mcp: FastMCP) -> None:
             request_params = {"Ads": [ad]}
 
             # ShoppingAd requires v501 API
-            result = await api_client.direct_request("ads", "add", request_params, use_v501=True)
+            result = await api_client.direct_request("ads", "add", request_params, use_v501=True, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -359,7 +359,7 @@ def register(mcp: FastMCP) -> None:
                 "Ads": [ad_update]
             }
 
-            result = await api_client.direct_request("ads", "update", request_params)
+            result = await api_client.direct_request("ads", "update", request_params, account=params.account)
             update_results = result.get("result", {}).get("UpdateResults", [])
 
             errors = []
@@ -406,7 +406,7 @@ def register(mcp: FastMCP) -> None:
                     },
                     "FieldNames": ["Id", "Status"]
                 }
-                lookup_result = await api_client.direct_request("ads", "get", lookup_params, use_v501=True)
+                lookup_result = await api_client.direct_request("ads", "get", lookup_params, use_v501=True, account=params.account)
                 found_ads = lookup_result.get("result", {}).get("Ads", [])
                 if not found_ads:
                     return f"No draft ads found in campaign {params.campaign_id}."
@@ -419,7 +419,7 @@ def register(mcp: FastMCP) -> None:
                 "SelectionCriteria": {"Ids": ad_ids}
             }
 
-            result = await api_client.direct_request("ads", "moderate", request_params, use_v501=True)
+            result = await api_client.direct_request("ads", "moderate", request_params, use_v501=True, account=params.account)
             moderate_results = result.get("result", {}).get("ModerateResults", [])
 
             success = [r["Id"] for r in moderate_results if r.get("Id") and not r.get("Errors")]

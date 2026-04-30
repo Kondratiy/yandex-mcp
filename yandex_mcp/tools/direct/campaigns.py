@@ -56,13 +56,16 @@ def register(mcp: FastMCP) -> None:
                     "NegativeKeywords"
                 ],
                 "TextCampaignFieldNames": ["BiddingStrategy", "Settings"],
+                "DynamicTextCampaignFieldNames": ["BiddingStrategy", "Settings"],
+                "SmartCampaignFieldNames": ["BiddingStrategy", "Settings", "AttributionModel"],
+                "UnifiedCampaignFieldNames": ["BiddingStrategy", "Settings", "AttributionModel"],
                 "Page": {
                     "Limit": params.limit,
                     "Offset": params.offset
                 }
             }
 
-            result = await api_client.direct_request("campaigns", "get", request_params)
+            result = await api_client.direct_request("campaigns", "get", request_params, use_v501=True, account=params.account)
             campaigns = result.get("result", {}).get("Campaigns", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -202,11 +205,23 @@ def register(mcp: FastMCP) -> None:
                     }
                 }
 
+            # Detect if campaign uses UnifiedCampaign block and mirror settings
+            has_unified = "UnifiedCampaign" in campaign_update
+            has_text = "TextCampaign" in campaign_update
+
+            # If TextCampaign fields were set, also duplicate them for UnifiedCampaign
+            # so the update works regardless of campaign type.
+            # The API ignores blocks that don't match the campaign type.
+            if has_text and not has_unified:
+                campaign_update["UnifiedCampaign"] = dict(campaign_update["TextCampaign"])
+                campaign_update["DynamicTextCampaign"] = dict(campaign_update["TextCampaign"])
+
             request_params = {
                 "Campaigns": [campaign_update]
             }
 
-            result = await api_client.direct_request("campaigns", "update", request_params)
+            # Use v501 to support all campaign types including UNIFIED_CAMPAIGN
+            result = await api_client.direct_request("campaigns", "update", request_params, use_v501=True, account=params.account)
             update_results = result.get("result", {}).get("UpdateResults", [])
 
             errors = []
@@ -415,7 +430,7 @@ def register(mcp: FastMCP) -> None:
 
             # UnifiedCampaign requires v501 API endpoint
             use_v501 = params.campaign_type == CampaignType.UNIFIED_CAMPAIGN
-            result = await api_client.direct_request("campaigns", "add", request_params, use_v501=use_v501)
+            result = await api_client.direct_request("campaigns", "add", request_params, use_v501=use_v501, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             if add_results and add_results[0].get("Id"):

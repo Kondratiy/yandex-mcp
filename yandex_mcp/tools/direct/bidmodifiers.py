@@ -70,7 +70,7 @@ def register(mcp: FastMCP) -> None:
                 "Page": {"Limit": params.limit}
             }
 
-            result = await api_client.direct_request("bidmodifiers", "get", request_params)
+            result = await api_client.direct_request("bidmodifiers", "get", request_params, account=params.account)
             bid_modifiers = result.get("result", {}).get("BidModifiers", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -162,7 +162,7 @@ def register(mcp: FastMCP) -> None:
                 "BidModifiers": [bid_modifier]
             }
 
-            result = await api_client.direct_request("bidmodifiers", "add", request_params)
+            result = await api_client.direct_request("bidmodifiers", "add", request_params, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             if add_results and (add_results[0].get("Id") or add_results[0].get("Ids")):
@@ -202,7 +202,7 @@ def register(mcp: FastMCP) -> None:
                 }]
             }
 
-            result = await api_client.direct_request("bidmodifiers", "set", request_params)
+            result = await api_client.direct_request("bidmodifiers", "set", request_params, account=params.account)
             set_results = result.get("result", {}).get("SetResults", [])
 
             success = [r["Id"] for r in set_results if r.get("Id") and not r.get("Errors")]
@@ -237,7 +237,7 @@ def register(mcp: FastMCP) -> None:
                 "SelectionCriteria": {"Ids": params.bid_modifier_ids}
             }
 
-            result = await api_client.direct_request("bidmodifiers", "delete", request_params)
+            result = await api_client.direct_request("bidmodifiers", "delete", request_params, account=params.account)
             delete_results = result.get("result", {}).get("DeleteResults", [])
 
             success = [r["Id"] for r in delete_results if r.get("Id") and not r.get("Errors")]
@@ -267,7 +267,7 @@ def register(mcp: FastMCP) -> None:
                 ]
             }
 
-            result = await api_client.direct_request("bidmodifiers", "toggle", request_params)
+            result = await api_client.direct_request("bidmodifiers", "toggle", request_params, account=params.account)
             toggle_results = result.get("result", {}).get("ToggleResults", [])
 
             success = len([r for r in toggle_results if not r.get("Errors")])

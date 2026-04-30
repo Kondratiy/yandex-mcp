@@ -2,10 +2,10 @@
 
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
-from .common import ResponseFormat
+from .common import ResponseFormat, AccountInput
 
 
-class WordstatTopRequestsInput(BaseModel):
+class WordstatTopRequestsInput(AccountInput):
     """Input for getting popular search queries."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -17,7 +17,7 @@ class WordstatTopRequestsInput(BaseModel):
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN, description="Output format: 'markdown' or 'json'")
 
 
-class WordstatDynamicsInput(BaseModel):
+class WordstatDynamicsInput(AccountInput):
     """Input for query frequency dynamics over time."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -30,7 +30,7 @@ class WordstatDynamicsInput(BaseModel):
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN, description="Output format")
 
 
-class WordstatRegionsInput(BaseModel):
+class WordstatRegionsInput(AccountInput):
     """Input for regional distribution of queries."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -40,11 +40,11 @@ class WordstatRegionsInput(BaseModel):
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN, description="Output format")
 
 
-class WordstatRegionsTreeInput(BaseModel):
+class WordstatRegionsTreeInput(AccountInput):
     """Input for getting the regions tree."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
 
-class WordstatUserInfoInput(BaseModel):
+class WordstatUserInfoInput(AccountInput):
     """Input for getting user quota info."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")

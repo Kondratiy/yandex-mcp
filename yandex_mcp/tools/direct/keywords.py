@@ -53,7 +53,7 @@ def register(mcp: FastMCP) -> None:
                 }
             }
 
-            result = await api_client.direct_request("keywords", "get", request_params)
+            result = await api_client.direct_request("keywords", "get", request_params, account=params.account)
             keywords = result.get("result", {}).get("Keywords", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -94,7 +94,7 @@ def register(mcp: FastMCP) -> None:
                 "Keywords": keywords
             }
 
-            result = await api_client.direct_request("keywords", "add", request_params)
+            result = await api_client.direct_request("keywords", "add", request_params, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             success = [r["Id"] for r in add_results if r.get("Id") and not r.get("Errors")]
@@ -143,7 +143,7 @@ def register(mcp: FastMCP) -> None:
                 "KeywordBids": keyword_bids
             }
 
-            result = await api_client.direct_request("keywordbids", "set", request_params)
+            result = await api_client.direct_request("keywordbids", "set", request_params, account=params.account)
             set_results = result.get("result", {}).get("SetResults", [])
 
             success = [r["KeywordId"] for r in set_results if r.get("KeywordId") and not r.get("Errors")]

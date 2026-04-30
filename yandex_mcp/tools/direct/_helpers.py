@@ -200,7 +200,7 @@ def register_manage_tool(
             try:
                 ids = getattr(params, ids_attr)
                 request_params = {"SelectionCriteria": {"Ids": ids}}
-                result = await api_client.direct_request(svc, act, request_params)
+                result = await api_client.direct_request(svc, act, request_params, account=params.account)
                 success_ids, errors = parse_action_results(result, act)
                 return format_action_response(act, ent, success_ids, errors)
             except Exception as e:

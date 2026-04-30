@@ -35,8 +35,7 @@ def register(mcp: FastMCP) -> None:
         """
         try:
             result = await api_client.metrika_request(
-                f"/management/v1/counter/{params.counter_id}/goals"
-            )
+                f"/management/v1/counter/{params.counter_id}/goals")
 
             goals = result.get("goals", [])
 
@@ -84,8 +83,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/goals",
                 method="POST",
-                data=data
-            )
+                data=data)
 
             goal = result.get("goal", {})
 
@@ -131,8 +129,7 @@ Use goal ID {goal.get('id')} for tracking conversions in Yandex Direct."""
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/goal/{params.goal_id}",
                 method="PUT",
-                data=data
-            )
+                data=data)
 
             return f"Goal {params.goal_id} updated successfully."
 
@@ -157,8 +154,7 @@ Use goal ID {goal.get('id')} for tracking conversions in Yandex Direct."""
         try:
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/goal/{params.goal_id}",
-                method="DELETE"
-            )
+                method="DELETE")
 
             return f"Goal {params.goal_id} deleted successfully."
 

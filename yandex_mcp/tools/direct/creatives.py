@@ -6,17 +6,18 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 
 from ...client import api_client
+from ...models.common import AccountInput
 from ...utils import handle_api_error
 
 
-class CreateVideoCreativeInput(BaseModel):
+class CreateVideoCreativeInput(AccountInput):
     """Input for creating a video extension creative."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
     video_id: str = Field(..., description="VideoId from uploaded video (from direct_upload_video)")
 
 
-class GetCreativesInput(BaseModel):
+class GetCreativesInput(AccountInput):
     """Input for getting creatives."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -56,7 +57,7 @@ def register(mcp: FastMCP) -> None:
                 }]
             }
 
-            result = await api_client.direct_request("creatives", "add", request_params)
+            result = await api_client.direct_request("creatives", "add", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -107,7 +108,7 @@ def register(mcp: FastMCP) -> None:
                 "Page": {"Limit": params.limit}
             }
 
-            result = await api_client.direct_request("creatives", "get", request_params)
+            result = await api_client.direct_request("creatives", "get", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]

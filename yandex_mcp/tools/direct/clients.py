@@ -1,6 +1,8 @@
 """Yandex Direct clients and changes tools."""
 
 import json
+from typing import Optional
+
 from mcp.server.fastmcp import FastMCP
 
 from ...client import api_client
@@ -46,7 +48,7 @@ def register(mcp: FastMCP) -> None:
                 ]
             }
 
-            result = await api_client.direct_request("clients", "get", request_params)
+            result = await api_client.direct_request("clients", "get", request_params, account=params.account)
             clients = result.get("result", {}).get("Clients", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -134,7 +136,7 @@ def register(mcp: FastMCP) -> None:
                 "Timestamp": params.timestamp
             }
 
-            result = await api_client.direct_request("changes", "checkCampaigns", request_params)
+            result = await api_client.direct_request("changes", "checkCampaigns", request_params, account=params.account)
             data = result.get("result", {})
 
             if params.response_format == ResponseFormat.JSON:
@@ -196,7 +198,7 @@ def register(mcp: FastMCP) -> None:
                 ]
             }
 
-            result = await api_client.direct_request("changes", "check", request_params)
+            result = await api_client.direct_request("changes", "check", request_params, account=params.account)
             data = result.get("result", {})
 
             if params.response_format == ResponseFormat.JSON:
@@ -263,25 +265,38 @@ def register(mcp: FastMCP) -> None:
             "openWorldHint": False
         }
     )
-    async def direct_get_recent_changes_timestamp() -> str:
-        """Get the current server timestamp for change tracking.
+    async def direct_get_recent_changes_timestamp(account: Optional[str] = None) -> str:
+        """Get the current Yandex Direct server timestamp for change tracking.
 
-        Use this timestamp as the starting point for tracking changes.
-        Store it and use in subsequent check calls.
+        Returns the server timestamp from `changes.checkDictionaries` — the
+        only method in the `changes` namespace that returns a Timestamp
+        without requiring CampaignIds/AdGroupIds/AdIds inputs. Store this
+        value and pass it as the starting point to direct_check_all_changes
+        or direct_check_campaign_changes for incremental sync.
         """
         try:
-            # Use check with empty timestamp to get current server timestamp
-            request_params = {
-                "Timestamp": "",
-                "FieldNames": ["CampaignIds"]
-            }
+            # changes.check / checkCampaigns require CampaignIds (or sibling
+            # arrays) and refuse with error 4003 if absent — they cannot be
+            # used as a "give me current timestamp" endpoint. checkDictionaries
+            # has no required parameters and returns a server-side Timestamp
+            # in the same ISO8601 format that check/checkCampaigns expect.
+            result = await api_client.direct_request(
+                "changes", "checkDictionaries", {}, account=account
+            )
 
-            result = await api_client.direct_request("changes", "check", request_params)
-            data = result.get("result", {})
+            if "error" in result:
+                err = result["error"]
+                return f"API Error: {err.get('error_code')}: {err.get('error_string')} | {err.get('error_detail', '')}"
 
-            timestamp = data.get("Timestamp", "")
+            timestamp = result.get("result", {}).get("Timestamp", "")
+            if not timestamp:
+                return "API returned no timestamp."
 
-            return f"Current server timestamp: {timestamp}\n\nStore this timestamp and use it in future change checks."
+            return (
+                f"Current server timestamp: {timestamp}\n\n"
+                "Store this timestamp and pass it to direct_check_all_changes "
+                "or direct_check_campaign_changes to track what changed since."
+            )
 
         except Exception as e:
             return handle_api_error(e)

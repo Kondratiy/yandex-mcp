@@ -8,10 +8,11 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 
 from ...client import api_client
+from ...models.common import AccountInput
 from ...utils import handle_api_error
 
 
-class UploadVideoInput(BaseModel):
+class UploadVideoInput(AccountInput):
     """Input for uploading a video."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -19,18 +20,31 @@ class UploadVideoInput(BaseModel):
     name: Optional[str] = Field(default=None, description="Video name (optional)")
 
 
-class UploadVideoByUrlInput(BaseModel):
+class UploadVideoByUrlInput(AccountInput):
     """Input for uploading a video by URL."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
     urls: List[str] = Field(..., min_length=1, max_length=10, description="Video URLs to upload (max 10)")
 
 
-class GetAdVideosInput(BaseModel):
-    """Input for getting ad videos."""
+class GetAdVideosInput(AccountInput):
+    """Input for getting ad videos.
+
+    Yandex Direct API requires explicit video IDs — there is no method
+    to list all videos at once. Pass 1 to 10 IDs in `video_ids`.
+    """
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
-    video_ids: Optional[List[str]] = Field(default=None, description="Filter by video IDs")
+    video_ids: List[str] = Field(
+        ...,
+        min_length=1,
+        max_length=10,
+        description=(
+            "Video IDs to fetch (1-10 IDs, required by Yandex Direct API). "
+            "There is no API method to list all videos — pass IDs returned "
+            "from direct_upload_video or direct_create_video_creative."
+        ),
+    )
     limit: int = Field(default=100, ge=1, le=10000)
 
 
@@ -74,7 +88,7 @@ def register(mcp: FastMCP) -> None:
 
             request_params = {"AdVideos": [ad_video]}
 
-            result = await api_client.direct_request("advideos", "add", request_params, timeout=300.0)
+            result = await api_client.direct_request("advideos", "add", request_params, timeout=300.0, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -113,17 +127,15 @@ def register(mcp: FastMCP) -> None:
         Video must be READY before creating a creative from it.
         """
         try:
-            selection_criteria = {}
-            if params.video_ids:
-                selection_criteria["Ids"] = params.video_ids
-
+            # Yandex API: SelectionCriteria.Ids is mandatory for advideos/get
+            # (1-10 elements). Pydantic validation guarantees video_ids is set.
             request_params = {
-                "SelectionCriteria": selection_criteria,
+                "SelectionCriteria": {"Ids": params.video_ids},
                 "FieldNames": ["Id", "Status"],
                 "Page": {"Limit": params.limit}
             }
 
-            result = await api_client.direct_request("advideos", "get", request_params)
+            result = await api_client.direct_request("advideos", "get", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]

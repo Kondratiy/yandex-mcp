@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .common import ResponseFormat
+from .common import ResponseFormat, AccountInput
 
 
 # =============================================================================
@@ -82,7 +82,7 @@ class BiddingStrategyType(str, Enum):
 # Campaign Models
 # =============================================================================
 
-class GetCampaignsInput(BaseModel):
+class GetCampaignsInput(AccountInput):
     """Input for getting campaigns list."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -119,7 +119,7 @@ class GetCampaignsInput(BaseModel):
     )
 
 
-class ManageCampaignInput(BaseModel):
+class ManageCampaignInput(AccountInput):
     """Input for managing campaign state (suspend/resume/archive/unarchive/delete)."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -131,7 +131,7 @@ class ManageCampaignInput(BaseModel):
     )
 
 
-class UpdateCampaignInput(BaseModel):
+class UpdateCampaignInput(AccountInput):
     """Input for updating campaign settings."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -230,7 +230,7 @@ class NetworkStrategyType(str, Enum):
     AVERAGE_CPA_PER_FILTER = "AVERAGE_CPA_PER_FILTER"
 
 
-class CreateCampaignInput(BaseModel):
+class CreateCampaignInput(AccountInput):
     """Input for creating a new campaign."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -305,7 +305,7 @@ class CreateCampaignInput(BaseModel):
 # Ad Group Models
 # =============================================================================
 
-class GetAdGroupsInput(BaseModel):
+class GetAdGroupsInput(AccountInput):
     """Input for getting ad groups."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -334,7 +334,7 @@ class GetAdGroupsInput(BaseModel):
     )
 
 
-class CreateAdGroupInput(BaseModel):
+class CreateAdGroupInput(AccountInput):
     """Input for creating an ad group."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -375,7 +375,7 @@ class CreateAdGroupInput(BaseModel):
     )
 
 
-class UpdateAdGroupInput(BaseModel):
+class UpdateAdGroupInput(AccountInput):
     """Input for updating an ad group."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -407,7 +407,7 @@ class UpdateAdGroupInput(BaseModel):
 # Ad Models
 # =============================================================================
 
-class GetAdsInput(BaseModel):
+class GetAdsInput(AccountInput):
     """Input for getting ads."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -448,7 +448,7 @@ class GetAdsInput(BaseModel):
     )
 
 
-class CreateTextAdInput(BaseModel):
+class CreateTextAdInput(AccountInput):
     """Input for creating a text ad."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -487,7 +487,7 @@ class CreateTextAdInput(BaseModel):
     )
 
 
-class CreateDynamicTextAdInput(BaseModel):
+class CreateDynamicTextAdInput(AccountInput):
     """Input for creating a dynamic text ad."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -518,7 +518,7 @@ class FeedFilterCondition(BaseModel):
     arguments: List[str] = Field(..., description="Values to match (max 10)")
 
 
-class CreateShoppingAdInput(BaseModel):
+class CreateShoppingAdInput(AccountInput):
     """Input for creating a shopping ad (for UnifiedCampaign with feed)."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -548,7 +548,7 @@ class CreateShoppingAdInput(BaseModel):
     )
 
 
-class CreateImageAdInput(BaseModel):
+class CreateImageAdInput(AccountInput):
     """Input for creating an image ad (banner)."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -566,7 +566,7 @@ class CreateImageAdInput(BaseModel):
     )
 
 
-class UpdateTextAdInput(BaseModel):
+class UpdateTextAdInput(AccountInput):
     """Input for updating a text ad."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -607,7 +607,7 @@ class UpdateTextAdInput(BaseModel):
     )
 
 
-class ManageAdInput(BaseModel):
+class ManageAdInput(AccountInput):
     """Input for managing ad state (suspend/resume/archive/unarchive/delete/moderate)."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -626,7 +626,7 @@ class ManageAdInput(BaseModel):
 # Keyword Models
 # =============================================================================
 
-class GetKeywordsInput(BaseModel):
+class GetKeywordsInput(AccountInput):
     """Input for getting keywords."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -659,7 +659,7 @@ class GetKeywordsInput(BaseModel):
     )
 
 
-class AddKeywordsInput(BaseModel):
+class AddKeywordsInput(AccountInput):
     """Input for adding keywords."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -680,7 +680,7 @@ class AddKeywordsInput(BaseModel):
     )
 
 
-class SetKeywordBidsInput(BaseModel):
+class SetKeywordBidsInput(AccountInput):
     """Input for setting keyword bids."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -692,7 +692,7 @@ class SetKeywordBidsInput(BaseModel):
     )
 
 
-class ManageKeywordInput(BaseModel):
+class ManageKeywordInput(AccountInput):
     """Input for managing keywords (suspend/resume/delete)."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -708,7 +708,7 @@ class ManageKeywordInput(BaseModel):
 # Statistics Models
 # =============================================================================
 
-class DirectReportInput(BaseModel):
+class DirectReportInput(AccountInput):
     """Input for Direct statistics report."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -729,6 +729,10 @@ class DirectReportInput(BaseModel):
     field_names: List[str] = Field(
         default_factory=lambda: ["CampaignName", "Impressions", "Clicks", "Cost"],
         description="Fields to include in report"
+    )
+    goals: Optional[List[int]] = Field(
+        default=None,
+        description="Metrika goal IDs for per-goal conversion columns (e.g. Conversions_<GoalId>_<Attribution>). Use with Conversions/CostPerConversion/Revenue in field_names."
     )
     campaign_ids: Optional[List[int]] = Field(
         default=None,

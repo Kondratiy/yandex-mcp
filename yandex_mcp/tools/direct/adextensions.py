@@ -6,11 +6,11 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 
 from ...client import api_client
-from ...models.common import ResponseFormat
+from ...models.common import ResponseFormat, AccountInput
 from ...utils import handle_api_error
 
 
-class GetAdExtensionsInput(BaseModel):
+class GetAdExtensionsInput(AccountInput):
     """Input for getting ad extensions."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -21,14 +21,14 @@ class GetAdExtensionsInput(BaseModel):
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN)
 
 
-class AddCalloutInput(BaseModel):
+class AddCalloutInput(AccountInput):
     """Input for adding callout extensions."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
     callout_texts: List[str] = Field(..., min_length=1, max_length=50, description="List of callout texts (max 25 chars each)")
 
 
-class LinkCalloutsToAdInput(BaseModel):
+class LinkCalloutsToAdInput(AccountInput):
     """Input for linking callouts to an ad."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -67,7 +67,7 @@ def register(mcp: FastMCP) -> None:
                 "Page": {"Limit": params.limit}
             }
 
-            result = await api_client.direct_request("adextensions", "get", request_params)
+            result = await api_client.direct_request("adextensions", "get", request_params, account=params.account)
             extensions = result.get("result", {}).get("AdExtensions", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -108,7 +108,7 @@ def register(mcp: FastMCP) -> None:
 
             request_params = {"AdExtensions": extensions}
 
-            result = await api_client.direct_request("adextensions", "add", request_params)
+            result = await api_client.direct_request("adextensions", "add", request_params, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             ids = []
@@ -162,7 +162,7 @@ def register(mcp: FastMCP) -> None:
                 }]
             }
 
-            result = await api_client.direct_request("ads", "update", request_params, use_v501=True)
+            result = await api_client.direct_request("ads", "update", request_params, use_v501=True, account=params.account)
             update_results = result.get("result", {}).get("UpdateResults", [])
 
             if update_results and (update_results[0].get("Id") or update_results[0].get("Ids")):

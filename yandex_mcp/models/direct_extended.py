@@ -5,14 +5,14 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .common import ResponseFormat
+from .common import ResponseFormat, AccountInput
 
 
 # =============================================================================
 # Sitelinks Models
 # =============================================================================
 
-class GetSitelinksInput(BaseModel):
+class GetSitelinksInput(AccountInput):
     """Input for getting sitelink sets."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -44,7 +44,7 @@ class SitelinkItem(BaseModel):
     description: Optional[str] = Field(default=None, max_length=60, description="Description (max 60 chars)")
 
 
-class AddSitelinksInput(BaseModel):
+class AddSitelinksInput(AccountInput):
     """Input for adding a sitelink set."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -56,7 +56,7 @@ class AddSitelinksInput(BaseModel):
     )
 
 
-class DeleteSitelinksInput(BaseModel):
+class DeleteSitelinksInput(AccountInput):
     """Input for deleting sitelink sets."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -71,7 +71,7 @@ class DeleteSitelinksInput(BaseModel):
 # VCards Models
 # =============================================================================
 
-class GetVCardsInput(BaseModel):
+class GetVCardsInput(AccountInput):
     """Input for getting vCards."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -96,7 +96,7 @@ class GetVCardsInput(BaseModel):
     )
 
 
-class AddVCardInput(BaseModel):
+class AddVCardInput(AccountInput):
     """Input for adding a vCard."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -114,7 +114,7 @@ class AddVCardInput(BaseModel):
     extra_message: Optional[str] = Field(default=None, max_length=200, description="Additional info")
 
 
-class DeleteVCardsInput(BaseModel):
+class DeleteVCardsInput(AccountInput):
     """Input for deleting vCards."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -129,7 +129,7 @@ class DeleteVCardsInput(BaseModel):
 # BidModifiers Models
 # =============================================================================
 
-class GetBidModifiersInput(BaseModel):
+class GetBidModifiersInput(AccountInput):
     """Input for getting bid modifiers."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -184,7 +184,7 @@ class RegionalAdjustment(BaseModel):
     bid_modifier: int = Field(..., ge=10, le=1300, description="Bid modifier percent (10-1300)")
 
 
-class AddBidModifierInput(BaseModel):
+class AddBidModifierInput(AccountInput):
     """Input for adding bid modifiers."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -197,7 +197,7 @@ class AddBidModifierInput(BaseModel):
     regional_adjustments: Optional[List[RegionalAdjustment]] = Field(default=None, description="Regional adjustments")
 
 
-class SetBidModifierInput(BaseModel):
+class SetBidModifierInput(AccountInput):
     """Input for setting bid modifier value."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -205,7 +205,7 @@ class SetBidModifierInput(BaseModel):
     bid_modifier: int = Field(..., ge=0, le=1300, description="New bid modifier percent")
 
 
-class DeleteBidModifiersInput(BaseModel):
+class DeleteBidModifiersInput(AccountInput):
     """Input for deleting bid modifiers."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -216,7 +216,7 @@ class DeleteBidModifiersInput(BaseModel):
     )
 
 
-class ToggleBidModifiersInput(BaseModel):
+class ToggleBidModifiersInput(AccountInput):
     """Input for enabling/disabling bid modifiers."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -228,7 +228,7 @@ class ToggleBidModifiersInput(BaseModel):
 # RetargetingLists Models
 # =============================================================================
 
-class GetRetargetingListsInput(BaseModel):
+class GetRetargetingListsInput(AccountInput):
     """Input for getting retargeting lists."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -255,7 +255,7 @@ class RetargetingRule(BaseModel):
     days: int = Field(default=30, ge=1, le=540, description="Days to look back (1-540)")
 
 
-class AddRetargetingListInput(BaseModel):
+class AddRetargetingListInput(AccountInput):
     """Input for adding a retargeting list."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -267,7 +267,7 @@ class AddRetargetingListInput(BaseModel):
     description: Optional[str] = Field(default=None, description="Description")
 
 
-class UpdateRetargetingListInput(BaseModel):
+class UpdateRetargetingListInput(AccountInput):
     """Input for updating a retargeting list."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -277,7 +277,7 @@ class UpdateRetargetingListInput(BaseModel):
     description: Optional[str] = Field(default=None, description="New description")
 
 
-class DeleteRetargetingListsInput(BaseModel):
+class DeleteRetargetingListsInput(AccountInput):
     """Input for deleting retargeting lists."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -292,7 +292,7 @@ class DeleteRetargetingListsInput(BaseModel):
 # AudienceTargets Models
 # =============================================================================
 
-class GetAudienceTargetsInput(BaseModel):
+class GetAudienceTargetsInput(AccountInput):
     """Input for getting audience targets."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -303,7 +303,7 @@ class GetAudienceTargetsInput(BaseModel):
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN)
 
 
-class AddAudienceTargetInput(BaseModel):
+class AddAudienceTargetInput(AccountInput):
     """Input for adding an audience target."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -313,7 +313,7 @@ class AddAudienceTargetInput(BaseModel):
     context_bid: Optional[float] = Field(default=None, gt=0, description="Bid for context networks")
 
 
-class ManageAudienceTargetsInput(BaseModel):
+class ManageAudienceTargetsInput(AccountInput):
     """Input for managing audience targets (suspend/resume/delete)."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -324,7 +324,7 @@ class ManageAudienceTargetsInput(BaseModel):
 # NegativeKeywordSharedSets Models
 # =============================================================================
 
-class GetNegativeKeywordSharedSetsInput(BaseModel):
+class GetNegativeKeywordSharedSetsInput(AccountInput):
     """Input for getting negative keyword shared sets."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -333,7 +333,7 @@ class GetNegativeKeywordSharedSetsInput(BaseModel):
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN)
 
 
-class AddNegativeKeywordSharedSetInput(BaseModel):
+class AddNegativeKeywordSharedSetInput(AccountInput):
     """Input for adding a negative keyword shared set."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -341,7 +341,7 @@ class AddNegativeKeywordSharedSetInput(BaseModel):
     negative_keywords: List[str] = Field(..., min_length=1, description="Negative keywords")
 
 
-class UpdateNegativeKeywordSharedSetInput(BaseModel):
+class UpdateNegativeKeywordSharedSetInput(AccountInput):
     """Input for updating a negative keyword shared set."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -350,7 +350,7 @@ class UpdateNegativeKeywordSharedSetInput(BaseModel):
     negative_keywords: Optional[List[str]] = Field(default=None, description="New negative keywords")
 
 
-class DeleteNegativeKeywordSharedSetsInput(BaseModel):
+class DeleteNegativeKeywordSharedSetsInput(AccountInput):
     """Input for deleting negative keyword shared sets."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -361,7 +361,7 @@ class DeleteNegativeKeywordSharedSetsInput(BaseModel):
 # Dictionaries Models
 # =============================================================================
 
-class GetDictionariesInput(BaseModel):
+class GetDictionariesInput(AccountInput):
     """Input for getting dictionaries."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -377,7 +377,7 @@ class GetDictionariesInput(BaseModel):
 # Changes Models
 # =============================================================================
 
-class CheckCampaignChangesInput(BaseModel):
+class CheckCampaignChangesInput(AccountInput):
     """Input for checking campaign changes."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -386,7 +386,7 @@ class CheckCampaignChangesInput(BaseModel):
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN)
 
 
-class CheckAllChangesInput(BaseModel):
+class CheckAllChangesInput(AccountInput):
     """Input for checking all changes."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -399,7 +399,7 @@ class CheckAllChangesInput(BaseModel):
 # =============================================================================
 
 
-class GetClientInfoInput(BaseModel):
+class GetClientInfoInput(AccountInput):
     """Input for getting client info."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -422,7 +422,7 @@ class ImageAssociated(str, Enum):
     NO = "NO"
 
 
-class UploadImageInput(BaseModel):
+class UploadImageInput(AccountInput):
     """Input for uploading an ad image."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -431,7 +431,7 @@ class UploadImageInput(BaseModel):
     image_type: ImageType = Field(default=ImageType.REGULAR, description="Image type: REGULAR or WIDE")
 
 
-class GetImagesInput(BaseModel):
+class GetImagesInput(AccountInput):
     """Input for getting ad images."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -442,7 +442,7 @@ class GetImagesInput(BaseModel):
     response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN, description="Output format")
 
 
-class DeleteImagesInput(BaseModel):
+class DeleteImagesInput(AccountInput):
     """Input for deleting ad images."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 

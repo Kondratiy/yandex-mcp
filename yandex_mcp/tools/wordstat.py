@@ -53,7 +53,7 @@ def register(mcp: FastMCP) -> None:
             if params.devices is not None:
                 data["devices"] = params.devices
 
-            result = await api_client.wordstat_request("/v1/topRequests", data)
+            result = await api_client.wordstat_request("/v1/topRequests", data, account=params.account)
 
             if params.response_format == ResponseFormat.JSON:
                 return json.dumps(result, indent=2, ensure_ascii=False)
@@ -92,7 +92,7 @@ def register(mcp: FastMCP) -> None:
             if params.devices is not None:
                 data["devices"] = params.devices
 
-            result = await api_client.wordstat_request("/v1/dynamics", data)
+            result = await api_client.wordstat_request("/v1/dynamics", data, account=params.account)
 
             if params.response_format == ResponseFormat.JSON:
                 return json.dumps(result, indent=2, ensure_ascii=False)
@@ -125,7 +125,7 @@ def register(mcp: FastMCP) -> None:
             if params.devices is not None:
                 data["devices"] = params.devices
 
-            result = await api_client.wordstat_request("/v1/regions", data)
+            result = await api_client.wordstat_request("/v1/regions", data, account=params.account)
 
             if params.response_format == ResponseFormat.JSON:
                 return json.dumps(result, indent=2, ensure_ascii=False)
@@ -152,7 +152,7 @@ def register(mcp: FastMCP) -> None:
         Useful for finding region IDs to use in other Wordstat tools.
         """
         try:
-            result = await api_client.wordstat_request("/v1/getRegionsTree")
+            result = await api_client.wordstat_request("/v1/getRegionsTree", account=params.account)
 
             return json.dumps(result, indent=2, ensure_ascii=False)
 
@@ -175,7 +175,7 @@ def register(mcp: FastMCP) -> None:
         Returns current API usage limits and remaining quota.
         """
         try:
-            result = await api_client.wordstat_request("/v1/userInfo")
+            result = await api_client.wordstat_request("/v1/userInfo", account=params.account)
 
             return json.dumps(result, indent=2, ensure_ascii=False)
 

@@ -35,8 +35,7 @@ def register(mcp: FastMCP) -> None:
         """
         try:
             result = await api_client.metrika_request(
-                f"/management/v1/counter/{params.counter_id}/filters"
-            )
+                f"/management/v1/counter/{params.counter_id}/filters")
 
             filters = result.get("filters", [])
 
@@ -92,8 +91,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/filters",
                 method="POST",
-                data=data
-            )
+                data=data)
 
             filter_data = result.get("filter", {})
 
@@ -138,8 +136,7 @@ def register(mcp: FastMCP) -> None:
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/filter/{params.filter_id}",
                 method="PUT",
-                data=data
-            )
+                data=data)
 
             return f"Filter {params.filter_id} updated successfully."
 
@@ -161,8 +158,7 @@ def register(mcp: FastMCP) -> None:
         try:
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/filter/{params.filter_id}",
-                method="DELETE"
-            )
+                method="DELETE")
 
             return f"Filter {params.filter_id} deleted successfully."
 

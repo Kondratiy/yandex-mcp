@@ -43,13 +43,14 @@ def register(mcp: FastMCP) -> None:
             request_params = {
                 "SelectionCriteria": selection_criteria,
                 "FieldNames": ["Id", "Name", "CampaignId", "RegionIds", "Type", "Status", "ServingStatus"],
+                "UnifiedAdGroupFieldNames": ["OfferRetargeting"],
                 "Page": {
                     "Limit": params.limit,
                     "Offset": params.offset
                 }
             }
 
-            result = await api_client.direct_request("adgroups", "get", request_params)
+            result = await api_client.direct_request("adgroups", "get", request_params, use_v501=True, account=params.account)
             groups = result.get("result", {}).get("AdGroups", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -117,7 +118,7 @@ def register(mcp: FastMCP) -> None:
 
             # UnifiedAdGroup requires v501 API
             use_v501 = params.is_unified
-            result = await api_client.direct_request("adgroups", "add", request_params, use_v501=use_v501)
+            result = await api_client.direct_request("adgroups", "add", request_params, use_v501=use_v501, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             if add_results and add_results[0].get("Id"):
@@ -168,7 +169,7 @@ def register(mcp: FastMCP) -> None:
                 "AdGroups": [adgroup_update]
             }
 
-            result = await api_client.direct_request("adgroups", "update", request_params)
+            result = await api_client.direct_request("adgroups", "update", request_params, account=params.account)
             update_results = result.get("result", {}).get("UpdateResults", [])
 
             errors = []

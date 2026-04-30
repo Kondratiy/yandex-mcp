@@ -74,8 +74,7 @@ def register(mcp: FastMCP) -> None:
 
             result = await api_client.metrika_request(
                 "/stat/v1/data",
-                params=query_params
-            )
+                params=query_params)
 
             if params.response_format == ResponseFormat.JSON:
                 return json.dumps(result, indent=2, ensure_ascii=False)
@@ -117,8 +116,7 @@ def register(mcp: FastMCP) -> None:
 
             result = await api_client.metrika_request(
                 "/stat/v1/data/bytime",
-                params=query_params
-            )
+                params=query_params)
 
             if params.response_format == ResponseFormat.JSON:
                 return json.dumps(result, indent=2, ensure_ascii=False)
@@ -196,8 +194,7 @@ def register(mcp: FastMCP) -> None:
 
             result = await api_client.metrika_request(
                 "/stat/v1/data/comparison",
-                params=query_params
-            )
+                params=query_params)
 
             if params.response_format == ResponseFormat.JSON:
                 return json.dumps(result, indent=2, ensure_ascii=False)
@@ -242,8 +239,7 @@ def register(mcp: FastMCP) -> None:
 
             result = await api_client.metrika_request(
                 "/stat/v1/data/drilldown",
-                params=query_params
-            )
+                params=query_params)
 
             if params.response_format == ResponseFormat.JSON:
                 return json.dumps(result, indent=2, ensure_ascii=False)

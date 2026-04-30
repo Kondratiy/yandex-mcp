@@ -52,7 +52,7 @@ def register(mcp: FastMCP) -> None:
                 "Page": {"Limit": params.limit}
             }
 
-            result = await api_client.direct_request("retargetinglists", "get", request_params)
+            result = await api_client.direct_request("retargetinglists", "get", request_params, account=params.account)
             lists = result.get("result", {}).get("RetargetingLists", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -115,7 +115,7 @@ def register(mcp: FastMCP) -> None:
                 "RetargetingLists": [retargeting_list]
             }
 
-            result = await api_client.direct_request("retargetinglists", "add", request_params)
+            result = await api_client.direct_request("retargetinglists", "add", request_params, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             if add_results and add_results[0].get("Id"):
@@ -167,7 +167,7 @@ def register(mcp: FastMCP) -> None:
                 "RetargetingLists": [retargeting_list]
             }
 
-            result = await api_client.direct_request("retargetinglists", "update", request_params)
+            result = await api_client.direct_request("retargetinglists", "update", request_params, account=params.account)
             update_results = result.get("result", {}).get("UpdateResults", [])
 
             errors = []
@@ -200,7 +200,7 @@ def register(mcp: FastMCP) -> None:
                 "SelectionCriteria": {"Ids": params.retargeting_list_ids}
             }
 
-            result = await api_client.direct_request("retargetinglists", "delete", request_params)
+            result = await api_client.direct_request("retargetinglists", "delete", request_params, account=params.account)
             delete_results = result.get("result", {}).get("DeleteResults", [])
 
             success = [r["Id"] for r in delete_results if r.get("Id") and not r.get("Errors")]
@@ -245,7 +245,7 @@ def register(mcp: FastMCP) -> None:
                 "Page": {"Limit": params.limit}
             }
 
-            result = await api_client.direct_request("audiencetargets", "get", request_params)
+            result = await api_client.direct_request("audiencetargets", "get", request_params, account=params.account)
             targets = result.get("result", {}).get("AudienceTargets", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -300,7 +300,7 @@ def register(mcp: FastMCP) -> None:
                 "AudienceTargets": [audience_target]
             }
 
-            result = await api_client.direct_request("audiencetargets", "add", request_params)
+            result = await api_client.direct_request("audiencetargets", "add", request_params, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             if add_results and add_results[0].get("Id"):

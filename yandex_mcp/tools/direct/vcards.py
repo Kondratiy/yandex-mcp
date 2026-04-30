@@ -49,7 +49,7 @@ def register(mcp: FastMCP) -> None:
                 }
             }
 
-            result = await api_client.direct_request("vcards", "get", request_params)
+            result = await api_client.direct_request("vcards", "get", request_params, account=params.account)
             vcards = result.get("result", {}).get("VCards", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -124,7 +124,7 @@ def register(mcp: FastMCP) -> None:
                 "VCards": [vcard]
             }
 
-            result = await api_client.direct_request("vcards", "add", request_params)
+            result = await api_client.direct_request("vcards", "add", request_params, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             if add_results and add_results[0].get("Id"):
@@ -160,7 +160,7 @@ def register(mcp: FastMCP) -> None:
                 "SelectionCriteria": {"Ids": params.vcard_ids}
             }
 
-            result = await api_client.direct_request("vcards", "delete", request_params)
+            result = await api_client.direct_request("vcards", "delete", request_params, account=params.account)
             delete_results = result.get("result", {}).get("DeleteResults", [])
 
             success = [r["Id"] for r in delete_results if r.get("Id") and not r.get("Errors")]

@@ -38,7 +38,7 @@ def register(mcp: FastMCP) -> None:
 
             request_params = {"AdImages": [ad_image]}
 
-            result = await api_client.direct_request("adimages", "add", request_params)
+            result = await api_client.direct_request("adimages", "add", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -102,7 +102,7 @@ def register(mcp: FastMCP) -> None:
                 }
             }
 
-            result = await api_client.direct_request("adimages", "get", request_params)
+            result = await api_client.direct_request("adimages", "get", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -156,7 +156,7 @@ def register(mcp: FastMCP) -> None:
                 }
             }
 
-            result = await api_client.direct_request("adimages", "delete", request_params)
+            result = await api_client.direct_request("adimages", "delete", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]

@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP](https://img.shields.io/badge/MCP-compatible-green.svg)](https://modelcontextprotocol.io/)
 
-MCP (Model Context Protocol) server for **Yandex Direct**, **Yandex Metrika**, and **Yandex Wordstat** APIs. Provides **128 tools** for managing advertising campaigns, analytics, keyword research, and reporting through any MCP-compatible client.
+MCP (Model Context Protocol) server for **Yandex Direct**, **Yandex Metrika**, **Yandex Wordstat**, and **Yandex AppMetrica** APIs. Provides **140 tools** for managing advertising campaigns, analytics, keyword research, mobile app analytics, and reporting through any MCP-compatible client.
 
 > Manage Yandex advertising and analytics through AI
 
@@ -28,12 +28,23 @@ MCP (Model Context Protocol) server for **Yandex Direct**, **Yandex Metrika**, a
 - **Dictionaries** — regions, interests, categories
 - **Negative Keywords** — shared negative keyword sets
 
-### Yandex Wordstat API (5 tools)
-- **Top Requests** — popular search queries and associations
-- **Dynamics** — query frequency trends over time
-- **Regions** — regional distribution of search queries
-- **Regions Tree** — hierarchical region structure
-- **User Info** — API quota and usage limits
+### Yandex Wordstat API (5 tools — **deprecated, disabled in this build**)
+The legacy Wordstat REST API (`api.wordstat.yandex.net`) is being
+superseded by the new [Yandex Cloud Search API](https://aistudio.yandex.ru/docs/ru/search-api/concepts/wordstat),
+which uses IAM-token auth and lives at a different endpoint. Old
+integration source is preserved — uncomment the two `wordstat` lines in
+`yandex_mcp/tools/__init__.py` if you still have legacy access. A fresh
+integration against the Cloud Search API would be a separate tool family.
+
+### Yandex AppMetrica API (12 tools)
+- **Applications** — list and view mobile app details
+- **Reports** — table, time-series, and drilldown analytics
+- **Events** — event statistics with unique user counts
+- **Crashes** — crash analytics grouped by type, OS, app version
+- **Profiles** — export user profiles with device and location data
+- **Funnels** — build conversion funnels from event sequences
+- **Logs API** — export raw data (events, crashes, installs, revenue, etc.)
+- **Push API** — create push groups and check sending status
 
 ### Yandex Metrika API (43 tools)
 - **Counters** — create, configure, delete tracking counters
@@ -66,7 +77,7 @@ Create a `.env` file:
 YANDEX_TOKEN=your_oauth_token_here
 ```
 
-Get a token from [Yandex OAuth](https://oauth.yandex.ru/) with permissions for Direct and Metrika APIs (`direct:api`, `metrika:read`, `metrika:write`).
+Get a token from [Yandex OAuth](https://oauth.yandex.ru/) with permissions for the APIs you need (`direct:api`, `metrika:read`, `metrika:write`, `appmetrica:read`).
 
 ### 3. Configure your MCP client
 
@@ -97,15 +108,73 @@ Add to your MCP client settings:
 
 ## Environment Variables
 
+### Multi-account configuration (multiple Yandex Direct accounts)
+
+To connect multiple Yandex **Direct** accounts to one MCP-server process,
+set `YANDEX_ACCOUNTS` to a JSON object:
+
+```bash
+YANDEX_ACCOUNTS='{
+  "main":      { "direct_token": "y0__...", "client_login": "your-login-1" },
+  "secondary": { "direct_token": "y0__...", "client_login": "your-login-2" }
+}'
+```
+
+Account names are arbitrary keys you choose (e.g. `team_a`, `prod`, `test`).
+
+Each account supports the following keys:
+
+| Key | Required | Description |
+|---|---|---|
+| `direct_token` | Yes | OAuth token for Yandex Direct API (also used by Wordstat) |
+| `client_login` | No | `Client-Login` header value for agency scenarios |
+| `use_sandbox` | No | If `true`, use Direct sandbox endpoint for this account |
+
+In Direct/Wordstat tool calls, pass `account` parameter to choose which
+credentials to use:
+
+```
+direct_get_campaigns(account="main", limit=10)
+direct_get_campaigns(account="secondary", limit=10)
+direct_get_campaigns(limit=10)               # uses first account in the dict
+```
+
+If `account` is omitted, the **first** account from the parsed dict is used
+as the default.
+
+> **Metrika and AppMetrica are single-token, not multi-account.** All
+> `metrika_*` tools always use one global `YANDEX_METRIKA_TOKEN` (or
+> `YANDEX_TOKEN` as fallback). All `appmetrica_*` tools resolve their
+> token in this order:
+> `YANDEX_APPMETRICA_TOKEN → YANDEX_METRIKA_TOKEN → YANDEX_TOKEN`.
+> A single Yandex.Metrica-family OAuth token usually works for BOTH
+> services, so if you already configured Metrika you don't need a
+> separate AppMetrica token. Counters and mobile apps are typically
+> shared across teams and don't have a 1-to-1 mapping to Direct
+> accounts, so per-account routing would just confuse the AI without
+> any benefit.
+
+### Legacy single-account mode (backward compatible)
+
+If `YANDEX_ACCOUNTS` is unset, the server falls back to legacy single-account
+env variables, collapsed into one virtual `default` account:
+
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `YANDEX_TOKEN` | Yes | Yandex OAuth token (used for both Direct and Metrika) |
-| `YANDEX_DIRECT_TOKEN` | No | Separate token for Direct API |
+| `YANDEX_TOKEN` | * | Yandex OAuth token (fallback for any service if specific token absent) |
+| `YANDEX_DIRECT_TOKEN` | * | Separate token for Direct API |
 | `YANDEX_METRIKA_TOKEN` | No | Separate token for Metrika API |
+| `YANDEX_APPMETRICA_TOKEN` | No | Separate token for AppMetrica API |
 | `YANDEX_CLIENT_LOGIN` | No | Client login for agency accounts |
 | `YANDEX_USE_SANDBOX` | No | Set to `true` for sandbox API |
 
-## Tools (128)
+\* At least one of `YANDEX_TOKEN` or `YANDEX_DIRECT_TOKEN` is required.
+
+Existing single-account deployments continue to work without any changes —
+the new `account` parameter on tools is optional and defaults to the
+single `default` account.
+
+## Tools (140)
 
 ### Yandex Direct (80 tools)
 
@@ -369,7 +438,11 @@ Add to your MCP client settings:
 | `metrika_add_delegate` | Add a delegate with counter access |
 | `metrika_delete_delegate` | Remove a delegate |
 
-### Yandex Wordstat (5 tools)
+### Yandex Wordstat (5 tools — **deprecated, disabled**)
+
+> Disabled by default — superseded by [Yandex Cloud Search API](https://aistudio.yandex.ru/docs/ru/search-api/concepts/wordstat).
+> Re-enable the legacy integration by uncommenting the `wordstat` lines
+> in `yandex_mcp/tools/__init__.py` if you still have access.
 
 | Tool | Description |
 |------|-------------|
@@ -378,6 +451,47 @@ Add to your MCP client settings:
 | `wordstat_regions` | Get regional distribution of search queries |
 | `wordstat_regions_tree` | Get full hierarchical regions tree with IDs |
 | `wordstat_user_info` | Get API quota and usage limits |
+
+### Yandex AppMetrica (12 tools)
+
+> AppMetrica is single-token. Token resolution: `YANDEX_APPMETRICA_TOKEN → YANDEX_METRIKA_TOKEN → YANDEX_TOKEN`. A Metrika token typically also works for AppMetrica. Tools have NO `account` parameter.
+
+#### Applications (2)
+
+| Tool | Description |
+|------|-------------|
+| `appmetrica_get_applications` | List all AppMetrica applications |
+| `appmetrica_get_application` | Get details of a specific application |
+
+#### Reports (3)
+
+| Tool | Description |
+|------|-------------|
+| `appmetrica_get_report` | Get analytics report with custom metrics and dimensions |
+| `appmetrica_get_report_by_time` | Get time-series report (daily, weekly, monthly) |
+| `appmetrica_get_drilldown_report` | Get hierarchical drill-down report |
+
+#### Events / Crashes / Profiles / Funnel (4)
+
+| Tool | Description |
+|------|-------------|
+| `appmetrica_get_events` | Get event list with unique user counts |
+| `appmetrica_get_crashes` | Get crash statistics grouped by type, OS, app version |
+| `appmetrica_get_profiles` | Export user profiles with device and location data |
+| `appmetrica_get_funnel` | Build conversion funnel from event sequence |
+
+#### Logs API (1)
+
+| Tool | Description |
+|------|-------------|
+| `appmetrica_export_logs` | Export raw data (clicks, installs, events, crashes, revenue, etc.) |
+
+#### Push API (2)
+
+| Tool | Description |
+|------|-------------|
+| `appmetrica_create_push_group` | Create a push notification group |
+| `appmetrica_get_push_status` | Check push sending status |
 
 ## Usage Examples
 
@@ -439,7 +553,7 @@ Add to Cursor MCP settings in the same format as above.
 ```
 yandex_mcp/
 ├── __init__.py          # MCP server init and tool registration
-├── client.py            # Async HTTP client for Direct, Metrika & Wordstat APIs
+├── client.py            # Async HTTP client for Direct, Metrika, Wordstat & AppMetrica APIs
 ├── config.py            # Configuration and environment variables
 ├── utils.py             # Error handling utilities
 ├── models/              # Pydantic input models
@@ -448,11 +562,13 @@ yandex_mcp/
 │   ├── direct_extended.py
 │   ├── metrika.py
 │   ├── metrika_extended.py
-│   └── wordstat.py
+│   ├── wordstat.py
+│   └── appmetrica.py
 ├── formatters/          # Markdown output formatters
 │   ├── direct.py
 │   ├── metrika.py
-│   └── wordstat.py
+│   ├── wordstat.py
+│   └── appmetrica.py
 └── tools/               # MCP tool definitions
     ├── direct/          # 80 Yandex Direct tools
     │   ├── _helpers.py  # Shared manage-operation factory
@@ -468,7 +584,16 @@ yandex_mcp/
     │   ├── goals.py
     │   ├── reports.py
     │   └── ...
-    └── wordstat.py      # 5 Yandex Wordstat tools
+    ├── wordstat.py      # 5 Yandex Wordstat tools
+    └── appmetrica/      # 12 Yandex AppMetrica tools
+        ├── applications.py
+        ├── reports.py
+        ├── events.py
+        ├── crashes.py
+        ├── profiles.py
+        ├── funnel.py
+        ├── logs.py
+        └── push.py
 ```
 
 ## Development

@@ -79,8 +79,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 "management/v1/labels",
                 method="POST",
-                json_data={"label": {"name": params.name}}
-            )
+                json_data={"label": {"name": params.name}})
 
             label = result.get("label", {})
             if label.get("id"):
@@ -107,8 +106,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 f"management/v1/label/{params.label_id}",
                 method="PUT",
-                json_data={"label": {"name": params.name}}
-            )
+                json_data={"label": {"name": params.name}})
 
             label = result.get("label", {})
             return f"Label {params.label_id} updated. New name: {label.get('name', params.name)}"
@@ -134,8 +132,7 @@ def register(mcp: FastMCP) -> None:
         try:
             await api_client.metrika_request(
                 f"management/v1/label/{params.label_id}",
-                method="DELETE"
-            )
+                method="DELETE")
             return f"Label {params.label_id} deleted successfully."
 
         except Exception as e:
@@ -156,8 +153,7 @@ def register(mcp: FastMCP) -> None:
         try:
             await api_client.metrika_request(
                 f"management/v1/counter/{params.counter_id}/label/{params.label_id}",
-                method="POST"
-            )
+                method="POST")
             return f"Counter {params.counter_id} linked to label {params.label_id}."
 
         except Exception as e:
@@ -178,8 +174,7 @@ def register(mcp: FastMCP) -> None:
         try:
             await api_client.metrika_request(
                 f"management/v1/counter/{params.counter_id}/label/{params.label_id}",
-                method="DELETE"
-            )
+                method="DELETE")
             return f"Counter {params.counter_id} unlinked from label {params.label_id}."
 
         except Exception as e:
@@ -206,8 +201,7 @@ def register(mcp: FastMCP) -> None:
         """
         try:
             result = await api_client.metrika_request(
-                f"management/v1/counter/{params.counter_id}/chart_annotations"
-            )
+                f"management/v1/counter/{params.counter_id}/chart_annotations")
             annotations = result.get("annotations", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -259,8 +253,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 f"management/v1/counter/{params.counter_id}/chart_annotation",
                 method="POST",
-                json_data={"annotation": annotation_data}
-            )
+                json_data={"annotation": annotation_data})
 
             annotation = result.get("annotation", {})
             if annotation.get("id"):
@@ -293,8 +286,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 f"management/v1/counter/{params.counter_id}/chart_annotation/{params.annotation_id}",
                 method="PUT",
-                json_data={"annotation": annotation_data}
-            )
+                json_data={"annotation": annotation_data})
 
             return f"Annotation {params.annotation_id} updated successfully."
 
@@ -316,8 +308,7 @@ def register(mcp: FastMCP) -> None:
         try:
             await api_client.metrika_request(
                 f"management/v1/counter/{params.counter_id}/chart_annotation/{params.annotation_id}",
-                method="DELETE"
-            )
+                method="DELETE")
             return f"Annotation {params.annotation_id} deleted successfully."
 
         except Exception as e:
@@ -388,8 +379,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 "management/v1/delegates",
                 method="POST",
-                json_data={"delegate": delegate_data}
-            )
+                json_data={"delegate": delegate_data})
 
             return f"Delegate {params.user_login} added successfully."
 
@@ -411,8 +401,7 @@ def register(mcp: FastMCP) -> None:
         try:
             await api_client.metrika_request(
                 f"management/v1/delegate/{params.user_login}",
-                method="DELETE"
-            )
+                method="DELETE")
             return f"Delegate {params.user_login} removed successfully."
 
         except Exception as e:

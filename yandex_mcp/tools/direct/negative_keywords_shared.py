@@ -45,7 +45,7 @@ def register(mcp: FastMCP) -> None:
                 "Page": {"Limit": params.limit}
             }
 
-            result = await api_client.direct_request("negativekeywordsharedsets", "get", request_params)
+            result = await api_client.direct_request("negativekeywordsharedsets", "get", request_params, account=params.account)
             shared_sets = result.get("result", {}).get("NegativeKeywordSharedSets", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -104,7 +104,7 @@ def register(mcp: FastMCP) -> None:
                 "NegativeKeywordSharedSets": [shared_set]
             }
 
-            result = await api_client.direct_request("negativekeywordsharedsets", "add", request_params)
+            result = await api_client.direct_request("negativekeywordsharedsets", "add", request_params, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             if add_results and add_results[0].get("Id"):
@@ -148,7 +148,7 @@ def register(mcp: FastMCP) -> None:
                 "NegativeKeywordSharedSets": [shared_set]
             }
 
-            result = await api_client.direct_request("negativekeywordsharedsets", "update", request_params)
+            result = await api_client.direct_request("negativekeywordsharedsets", "update", request_params, account=params.account)
             update_results = result.get("result", {}).get("UpdateResults", [])
 
             errors = []
@@ -184,7 +184,7 @@ def register(mcp: FastMCP) -> None:
                 "SelectionCriteria": {"Ids": params.shared_set_ids}
             }
 
-            result = await api_client.direct_request("negativekeywordsharedsets", "delete", request_params)
+            result = await api_client.direct_request("negativekeywordsharedsets", "delete", request_params, account=params.account)
             delete_results = result.get("result", {}).get("DeleteResults", [])
 
             success = [r["Id"] for r in delete_results if r.get("Id") and not r.get("Errors")]

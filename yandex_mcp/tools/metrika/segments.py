@@ -35,8 +35,7 @@ def register(mcp: FastMCP) -> None:
         """
         try:
             result = await api_client.metrika_request(
-                f"/management/v1/counter/{params.counter_id}/apisegment/segments"
-            )
+                f"/management/v1/counter/{params.counter_id}/apisegment/segments")
 
             segments = result.get("segments", [])
 
@@ -80,8 +79,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/apisegment/segments",
                 method="POST",
-                data=data
-            )
+                data=data)
 
             segment = result.get("segment", {})
 
@@ -124,8 +122,7 @@ Use this segment in reports with the filters parameter."""
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/apisegment/segment/{params.segment_id}",
                 method="PUT",
-                data=data
-            )
+                data=data)
 
             return f"Segment {params.segment_id} updated successfully."
 
@@ -147,8 +144,7 @@ Use this segment in reports with the filters parameter."""
         try:
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}/apisegment/segment/{params.segment_id}",
-                method="DELETE"
-            )
+                method="DELETE")
 
             return f"Segment {params.segment_id} deleted successfully."
 

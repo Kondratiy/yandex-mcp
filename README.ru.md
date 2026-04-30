@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP](https://img.shields.io/badge/MCP-compatible-green.svg)](https://modelcontextprotocol.io/)
 
-MCP (Model Context Protocol) сервер для **Yandex Direct**, **Yandex Metrika** и **Yandex Wordstat** API. Предоставляет **128 инструментов** для управления рекламными кампаниями, аналитикой, исследованием ключевых слов и отчётностью через любой MCP-совместимый клиент.
+MCP (Model Context Protocol) сервер для **Yandex Direct**, **Yandex Metrika**, **Yandex Wordstat** и **Yandex AppMetrica** API. Предоставляет **140 инструментов** для управления рекламными кампаниями, аналитикой, исследованием ключевых слов, мобильной аналитикой и отчётностью через любой MCP-совместимый клиент.
 
 > Управляй рекламой и аналитикой Яндекса через AI
 
@@ -28,12 +28,24 @@ MCP (Model Context Protocol) сервер для **Yandex Direct**, **Yandex Met
 - **Справочники** — регионы, интересы, категории
 - **Минус-слова** — общие наборы минус-слов
 
-### Yandex Wordstat API (5 инструментов)
-- **Популярные запросы** — топ поисковых запросов и ассоциации
-- **Динамика** — тренды частотности запросов по времени
-- **Регионы** — региональное распределение поисковых запросов
-- **Дерево регионов** — иерархическая структура регионов
-- **Информация о пользователе** — квота и лимиты API
+### Yandex AppMetrica API (12 инструментов)
+- **Приложения** — список и детали мобильных приложений
+- **Отчёты** — табличные, временные ряды и drill-down
+- **События** — статистика событий с уникальными пользователями
+- **Краши** — аналитика крашей по типу, ОС, версии приложения
+- **Профили** — экспорт профилей пользователей с устройствами и геолокацией
+- **Воронки** — построение конверсионных воронок по последовательностям событий
+- **Logs API** — экспорт сырых данных (события, краши, установки, доход и т.д.)
+- **Push API** — создание групп push-уведомлений и проверка статуса отправки
+
+### Yandex Wordstat API (5 инструментов — **устарело, отключено в этой сборке**)
+Старый Wordstat REST API (`api.wordstat.yandex.net`) заменяется новым
+[Yandex Cloud Search API](https://aistudio.yandex.ru/docs/ru/search-api/concepts/wordstat) —
+он использует IAM-токен (другая авторизация, не Direct OAuth) и живёт на
+другом эндпоинте. Код старой интеграции сохранён — раскомментируйте две
+строки `wordstat` в `yandex_mcp/tools/__init__.py`, если у вас остался
+legacy-доступ. Новая интеграция против Cloud Search API будет отдельным
+семейством инструментов.
 
 ### Yandex Metrika API (43 инструмента)
 - **Счётчики** — создание, настройка, удаление
@@ -66,7 +78,7 @@ pip install -e .
 YANDEX_TOKEN=ваш_oauth_токен
 ```
 
-Получите токен на [Yandex OAuth](https://oauth.yandex.ru/) с правами `direct:api`, `metrika:read`, `metrika:write`.
+Получите токен на [Yandex OAuth](https://oauth.yandex.ru/) с правами `direct:api`, `metrika:read`, `metrika:write`, `appmetrica:read` (выбирайте те, что нужны).
 
 ### 3. Настройка MCP-клиента
 
@@ -97,15 +109,70 @@ YANDEX_TOKEN=ваш_oauth_токен
 
 ## Переменные окружения
 
+### Мульти-аккаунт режим (несколько аккаунтов Яндекс.Директа)
+
+Чтобы подключить несколько аккаунтов Яндекс.**Директа** к одному MCP-серверу,
+задайте `YANDEX_ACCOUNTS` как JSON-объект:
+
+```bash
+YANDEX_ACCOUNTS='{
+  "main":      { "direct_token": "y0__...", "client_login": "your-login-1" },
+  "secondary": { "direct_token": "y0__...", "client_login": "your-login-2" }
+}'
+```
+
+Имена аккаунтов — произвольные ключи на ваш выбор (например `team_a`, `prod`, `test`).
+
+Поля одного аккаунта:
+
+| Ключ | Обязательное | Описание |
+|---|---|---|
+| `direct_token` | Да | OAuth-токен для Yandex Direct API (используется и Wordstat) |
+| `client_login` | Нет | Значение заголовка `Client-Login` (для агентских сценариев) |
+| `use_sandbox` | Нет | `true` — использовать песочницу Direct |
+
+В вызове Direct/Wordstat инструмента передавайте `account` чтобы выбрать аккаунт:
+
+```
+direct_get_campaigns(account="main", limit=10)
+direct_get_campaigns(account="secondary", limit=10)
+direct_get_campaigns(limit=10)               # первый в JSON = default
+```
+
+Если `account` не указан, используется **первый** аккаунт из словаря.
+При неизвестном имени — возвращается понятная ошибка с перечнем доступных.
+
+> **Metrika и AppMetrica — одно-токенные, не мульти-аккаунтные.** Все
+> `metrika_*` инструменты используют единый `YANDEX_METRIKA_TOKEN`
+> (или `YANDEX_TOKEN` как fallback). Все `appmetrica_*` берут токен
+> в порядке: `YANDEX_APPMETRICA_TOKEN → YANDEX_METRIKA_TOKEN →
+> YANDEX_TOKEN`. Один токен семейства Yandex.Metrica обычно работает
+> для **обоих** сервисов, поэтому если у вас уже настроена Metrika
+> отдельный AppMetrica-токен не нужен. Счётчики и приложения обычно
+> общие между командами и не имеют 1-к-1 связи с Direct-аккаунтами,
+> поэтому per-account роутинг здесь только запутывал бы Claude без
+> пользы.
+
+### Legacy single-account режим (обратная совместимость)
+
+Если `YANDEX_ACCOUNTS` не задан, сервер собирает виртуальный аккаунт
+`default` из старых переменных окружения:
+
 | Переменная | Обязательная | Описание |
 |------------|-------------|----------|
-| `YANDEX_TOKEN` | Да | OAuth-токен Яндекса (используется для Direct и Metrika) |
-| `YANDEX_DIRECT_TOKEN` | Нет | Отдельный токен для Direct API |
+| `YANDEX_TOKEN` | * | OAuth-токен Яндекса (используется для Direct и Metrika) |
+| `YANDEX_DIRECT_TOKEN` | * | Отдельный токен для Direct API |
 | `YANDEX_METRIKA_TOKEN` | Нет | Отдельный токен для Metrika API |
+| `YANDEX_APPMETRICA_TOKEN` | Нет | Отдельный токен для AppMetrica API |
 | `YANDEX_CLIENT_LOGIN` | Нет | Логин клиента для агентских аккаунтов |
 | `YANDEX_USE_SANDBOX` | Нет | `true` для использования песочницы |
 
-## Инструменты (128)
+\* Должен быть задан хотя бы один: `YANDEX_TOKEN` или `YANDEX_DIRECT_TOKEN`.
+
+Старые single-account установки продолжают работать без изменений —
+параметр `account` у инструментов опционален.
+
+## Инструменты (140)
 
 ### Yandex Direct (80 инструментов)
 
@@ -369,7 +436,11 @@ YANDEX_TOKEN=ваш_oauth_токен
 | `metrika_add_delegate` | Добавить представителя |
 | `metrika_delete_delegate` | Удалить представителя |
 
-### Yandex Wordstat (5 инструментов)
+### Yandex Wordstat (5 инструментов — **устарело, отключено**)
+
+> Отключено по умолчанию — заменён на [Yandex Cloud Search API](https://aistudio.yandex.ru/docs/ru/search-api/concepts/wordstat).
+> Чтобы включить старую интеграцию, раскомментируйте строки `wordstat`
+> в `yandex_mcp/tools/__init__.py` (если у вас остался legacy-доступ).
 
 | Инструмент | Описание |
 |------------|----------|
@@ -378,6 +449,47 @@ YANDEX_TOKEN=ваш_oauth_токен
 | `wordstat_regions` | Получить региональное распределение запросов |
 | `wordstat_regions_tree` | Получить полное дерево регионов с ID |
 | `wordstat_user_info` | Получить квоту и лимиты API |
+
+### Yandex AppMetrica (12 инструментов)
+
+> AppMetrica — одно-токенная. Цепочка: `YANDEX_APPMETRICA_TOKEN → YANDEX_METRIKA_TOKEN → YANDEX_TOKEN`. Metrika-токен обычно работает и для AppMetrica. У инструментов НЕТ параметра `account`.
+
+#### Приложения (2)
+
+| Инструмент | Описание |
+|------------|----------|
+| `appmetrica_get_applications` | Список всех приложений в AppMetrica |
+| `appmetrica_get_application` | Детали конкретного приложения |
+
+#### Отчёты (3)
+
+| Инструмент | Описание |
+|------------|----------|
+| `appmetrica_get_report` | Аналитический отчёт с метриками и измерениями |
+| `appmetrica_get_report_by_time` | Отчёт временного ряда (день/неделя/месяц) |
+| `appmetrica_get_drilldown_report` | Иерархический drill-down отчёт |
+
+#### События / Краши / Профили / Воронки (4)
+
+| Инструмент | Описание |
+|------------|----------|
+| `appmetrica_get_events` | Список событий с уникальными пользователями |
+| `appmetrica_get_crashes` | Статистика крашей по типу, ОС, версии приложения |
+| `appmetrica_get_profiles` | Экспорт профилей пользователей с устройствами и гео |
+| `appmetrica_get_funnel` | Построение конверсионной воронки из последовательности событий |
+
+#### Logs API (1)
+
+| Инструмент | Описание |
+|------------|----------|
+| `appmetrica_export_logs` | Экспорт сырых данных (клики, установки, события, краши, доход) |
+
+#### Push API (2)
+
+| Инструмент | Описание |
+|------------|----------|
+| `appmetrica_create_push_group` | Создать группу push-уведомлений |
+| `appmetrica_get_push_status` | Проверить статус отправки push-группы |
 
 ## Примеры использования
 
@@ -439,7 +551,7 @@ npx @modelcontextprotocol/inspector python -m yandex_mcp
 ```
 yandex_mcp/
 ├── __init__.py          # Инициализация MCP-сервера и регистрация инструментов
-├── client.py            # Async HTTP-клиент для Direct, Metrika и Wordstat API
+├── client.py            # Async HTTP-клиент для Direct, Metrika, Wordstat и AppMetrica API
 ├── config.py            # Конфигурация и переменные окружения
 ├── utils.py             # Утилиты обработки ошибок
 ├── models/              # Pydantic-модели входных данных
@@ -468,7 +580,16 @@ yandex_mcp/
     │   ├── goals.py
     │   ├── reports.py
     │   └── ...
-    └── wordstat.py      # 5 инструментов Yandex Wordstat
+    ├── wordstat.py      # 5 инструментов Yandex Wordstat
+    └── appmetrica/      # 12 инструментов Yandex AppMetrica
+        ├── applications.py
+        ├── reports.py
+        ├── events.py
+        ├── crashes.py
+        ├── profiles.py
+        ├── funnel.py
+        ├── logs.py
+        └── push.py
 ```
 
 ## Разработка

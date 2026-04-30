@@ -6,10 +6,11 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Literal
 
 from ...client import api_client
+from ...models.common import AccountInput
 from ...utils import handle_api_error
 
 
-class AddFeedInput(BaseModel):
+class AddFeedInput(AccountInput):
     """Input for adding a feed."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -23,7 +24,7 @@ class AddFeedInput(BaseModel):
     remove_utm_tags: bool = Field(default=False, description="Remove UTM tags from URLs in feed")
 
 
-class GetFeedsInput(BaseModel):
+class GetFeedsInput(AccountInput):
     """Input for getting feeds."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -31,7 +32,7 @@ class GetFeedsInput(BaseModel):
     limit: int = Field(default=100, ge=1, le=10000)
 
 
-class UpdateFeedInput(BaseModel):
+class UpdateFeedInput(AccountInput):
     """Input for updating a feed."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -43,7 +44,7 @@ class UpdateFeedInput(BaseModel):
     remove_utm_tags: Optional[bool] = Field(default=None, description="Remove UTM tags from URLs")
 
 
-class DeleteFeedsInput(BaseModel):
+class DeleteFeedsInput(AccountInput):
     """Input for deleting feeds."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
@@ -88,7 +89,7 @@ def register(mcp: FastMCP) -> None:
 
             request_params = {"Feeds": [feed]}
 
-            result = await api_client.direct_request("feeds", "add", request_params)
+            result = await api_client.direct_request("feeds", "add", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -127,18 +128,19 @@ def register(mcp: FastMCP) -> None:
         Shows feed name, type, URL, number of items, and linked campaigns.
         """
         try:
-            selection_criteria = {}
-            if params.feed_ids:
-                selection_criteria["Ids"] = params.feed_ids
-
+            # Yandex API: SelectionCriteria itself is optional. To get ALL feeds,
+            # omit SelectionCriteria entirely. If we send an empty {} the API
+            # treats it as "SelectionCriteria is present but Ids is missing"
+            # and rejects with "Отсутствует обязательный параметр Ids".
             request_params = {
-                "SelectionCriteria": selection_criteria,
                 "FieldNames": ["Id", "Name", "BusinessType", "SourceType", "Status", "NumberOfItems", "UpdatedAt", "CampaignIds"],
                 "UrlFeedFieldNames": ["Url", "Login", "RemoveUtmTags"],
                 "Page": {"Limit": params.limit}
             }
+            if params.feed_ids:
+                request_params["SelectionCriteria"] = {"Ids": params.feed_ids}
 
-            result = await api_client.direct_request("feeds", "get", request_params)
+            result = await api_client.direct_request("feeds", "get", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -211,7 +213,7 @@ def register(mcp: FastMCP) -> None:
 
             request_params = {"Feeds": [feed_update]}
 
-            result = await api_client.direct_request("feeds", "update", request_params)
+            result = await api_client.direct_request("feeds", "update", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]
@@ -249,7 +251,7 @@ def register(mcp: FastMCP) -> None:
                 "SelectionCriteria": {"Ids": params.feed_ids}
             }
 
-            result = await api_client.direct_request("feeds", "delete", request_params)
+            result = await api_client.direct_request("feeds", "delete", request_params, account=params.account)
 
             if "error" in result:
                 err = result["error"]

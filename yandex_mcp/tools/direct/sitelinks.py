@@ -48,7 +48,7 @@ def register(mcp: FastMCP) -> None:
                 }
             }
 
-            result = await api_client.direct_request("sitelinks", "get", request_params)
+            result = await api_client.direct_request("sitelinks", "get", request_params, account=params.account)
             sitelink_sets = result.get("result", {}).get("SitelinksSets", [])
 
             if params.response_format == ResponseFormat.JSON:
@@ -105,7 +105,7 @@ def register(mcp: FastMCP) -> None:
                 }]
             }
 
-            result = await api_client.direct_request("sitelinks", "add", request_params)
+            result = await api_client.direct_request("sitelinks", "add", request_params, account=params.account)
             add_results = result.get("result", {}).get("AddResults", [])
 
             if add_results and add_results[0].get("Id"):
@@ -141,7 +141,7 @@ def register(mcp: FastMCP) -> None:
                 "SelectionCriteria": {"Ids": params.sitelink_set_ids}
             }
 
-            result = await api_client.direct_request("sitelinks", "delete", request_params)
+            result = await api_client.direct_request("sitelinks", "delete", request_params, account=params.account)
             delete_results = result.get("result", {}).get("DeleteResults", [])
 
             success = [r["Id"] for r in delete_results if r.get("Id") and not r.get("Errors")]

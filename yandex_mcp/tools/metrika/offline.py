@@ -72,8 +72,7 @@ def register(mcp: FastMCP) -> None:
                 f"management/v1/counter/{params.counter_id}/offline_conversions/upload",
                 method="POST",
                 params={"client_id_type": params.client_id_type},
-                json_data={"conversions": conversions_data}
-            )
+                json_data={"conversions": conversions_data})
 
             uploading_id = result.get("uploading", {}).get("id")
             if uploading_id:
@@ -102,8 +101,7 @@ def register(mcp: FastMCP) -> None:
         try:
             result = await api_client.metrika_request(
                 f"management/v1/counter/{params.counter_id}/offline_conversions/uploadings",
-                params={"limit": params.limit}
-            )
+                params={"limit": params.limit})
 
             uploadings = result.get("uploadings", [])
 
@@ -184,8 +182,7 @@ def register(mcp: FastMCP) -> None:
                 f"management/v1/counter/{params.counter_id}/offline_conversions/calls/upload",
                 method="POST",
                 params=request_params,
-                json_data={"calls": calls_data}
-            )
+                json_data={"calls": calls_data})
 
             uploading_id = result.get("uploading", {}).get("id")
             if uploading_id:
@@ -245,8 +242,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 f"management/v1/counter/{params.counter_id}/expense/upload",
                 method="POST",
-                json_data={"expenses": expenses_data}
-            )
+                json_data={"expenses": expenses_data})
 
             uploading_id = result.get("uploading", {}).get("id")
             if uploading_id:
@@ -293,8 +289,7 @@ def register(mcp: FastMCP) -> None:
                 f"management/v1/counter/{params.counter_id}/user_params/uploadings",
                 method="POST",
                 params={"client_id_type": params.client_id_type},
-                json_data={"users": users_data}
-            )
+                json_data={"users": users_data})
 
             uploading_id = result.get("uploading", {}).get("id")
             if uploading_id:

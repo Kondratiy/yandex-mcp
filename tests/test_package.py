@@ -160,12 +160,37 @@ EXPECTED_METRIKA_TOOLS = [
     "metrika_delete_delegate",
 ]
 
-EXPECTED_WORDSTAT_TOOLS = [
-    "wordstat_top_requests",
-    "wordstat_dynamics",
-    "wordstat_regions",
-    "wordstat_regions_tree",
-    "wordstat_user_info",
+# Wordstat is deprecated — registration disabled in tools/__init__.py.
+# Source code is preserved (see yandex_mcp/tools/wordstat.py); to re-enable,
+# uncomment the wordstat lines in tools/__init__.py and restore this list:
+#     "wordstat_top_requests", "wordstat_dynamics", "wordstat_regions",
+#     "wordstat_regions_tree", "wordstat_user_info"
+EXPECTED_WORDSTAT_TOOLS: list[str] = []
+
+EXPECTED_APPMETRICA_TOOLS = [
+    # Applications (2)
+    "appmetrica_get_applications",
+    "appmetrica_get_application",
+    # Reports (3)
+    "appmetrica_get_report",
+    "appmetrica_get_report_by_time",
+    "appmetrica_get_drilldown_report",
+    # Logs (1)
+    "appmetrica_export_logs",
+    # Events (1)
+    "appmetrica_get_events",
+    # Crashes (1)
+    "appmetrica_get_crashes",
+    # Profiles (1)
+    "appmetrica_get_profiles",
+    # Funnel (1)
+    "appmetrica_get_funnel",
+    # Attribution (2)
+    "appmetrica_attribution_join",
+    "appmetrica_install_attribution",
+    # Push (2)
+    "appmetrica_create_push_group",
+    "appmetrica_get_push_status",
 ]
 
 
@@ -174,11 +199,15 @@ class TestToolRegistration:
 
     def test_total_tool_count(self, mcp_instance):
         tools = list(mcp_instance._tool_manager._tools.keys())
-        expected = len(EXPECTED_DIRECT_TOOLS) + len(EXPECTED_METRIKA_TOOLS) + len(EXPECTED_WORDSTAT_TOOLS)
+        all_expected = (
+            EXPECTED_DIRECT_TOOLS + EXPECTED_METRIKA_TOOLS
+            + EXPECTED_WORDSTAT_TOOLS + EXPECTED_APPMETRICA_TOOLS
+        )
+        expected = len(all_expected)
         assert len(tools) == expected, (
             f"Expected {expected} tools, got {len(tools)}. "
-            f"Missing: {set(EXPECTED_DIRECT_TOOLS + EXPECTED_METRIKA_TOOLS + EXPECTED_WORDSTAT_TOOLS) - set(tools)}. "
-            f"Extra: {set(tools) - set(EXPECTED_DIRECT_TOOLS + EXPECTED_METRIKA_TOOLS + EXPECTED_WORDSTAT_TOOLS)}"
+            f"Missing: {set(all_expected) - set(tools)}. "
+            f"Extra: {set(tools) - set(all_expected)}"
         )
 
     def test_direct_tool_count(self, mcp_instance):
@@ -193,6 +222,10 @@ class TestToolRegistration:
         tools = [t for t in mcp_instance._tool_manager._tools if t.startswith("wordstat_")]
         assert len(tools) == len(EXPECTED_WORDSTAT_TOOLS)
 
+    def test_appmetrica_tool_count(self, mcp_instance):
+        tools = [t for t in mcp_instance._tool_manager._tools if t.startswith("appmetrica_")]
+        assert len(tools) == len(EXPECTED_APPMETRICA_TOOLS)
+
     @pytest.mark.parametrize("tool_name", EXPECTED_DIRECT_TOOLS)
     def test_direct_tool_exists(self, mcp_instance, tool_name):
         assert tool_name in mcp_instance._tool_manager._tools, f"Missing Direct tool: {tool_name}"
@@ -204,6 +237,10 @@ class TestToolRegistration:
     @pytest.mark.parametrize("tool_name", EXPECTED_WORDSTAT_TOOLS)
     def test_wordstat_tool_exists(self, mcp_instance, tool_name):
         assert tool_name in mcp_instance._tool_manager._tools, f"Missing Wordstat tool: {tool_name}"
+
+    @pytest.mark.parametrize("tool_name", EXPECTED_APPMETRICA_TOOLS)
+    def test_appmetrica_tool_exists(self, mcp_instance, tool_name):
+        assert tool_name in mcp_instance._tool_manager._tools, f"Missing AppMetrica tool: {tool_name}"
 
 
 class TestToolNaming:
@@ -224,8 +261,13 @@ class TestToolNaming:
         for tool in wordstat_tools:
             assert tool.startswith("wordstat_"), f"Wordstat tool not properly prefixed: {tool}"
 
+    def test_all_appmetrica_tools_prefixed(self, mcp_instance):
+        appmetrica_tools = [t for t in mcp_instance._tool_manager._tools if t.startswith("appmetrica_")]
+        for tool in appmetrica_tools:
+            assert tool.startswith("appmetrica_"), f"AppMetrica tool not properly prefixed: {tool}"
+
     def test_no_unknown_prefixes(self, mcp_instance):
-        known_prefixes = ("direct_", "metrika_", "wordstat_")
+        known_prefixes = ("direct_", "metrika_", "wordstat_", "appmetrica_")
         for tool in mcp_instance._tool_manager._tools:
             assert any(tool.startswith(p) for p in known_prefixes), f"Unknown prefix in tool: {tool}"
 

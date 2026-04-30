@@ -52,3 +52,6 @@ Thumbs.db
 
 # uv
 uv.lock
+
+# Local-only files (not for upstream/fork publication)
+tests/MANUAL_TEST_PLAN.md

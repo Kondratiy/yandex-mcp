@@ -42,8 +42,7 @@ def register(mcp: FastMCP) -> None:
 
             result = await api_client.metrika_request(
                 "/management/v1/counters",
-                params=query_params
-            )
+                params=query_params)
 
             counters = result.get("counters", [])
 
@@ -72,8 +71,7 @@ def register(mcp: FastMCP) -> None:
         """
         try:
             result = await api_client.metrika_request(
-                f"/management/v1/counter/{params.counter_id}"
-            )
+                f"/management/v1/counter/{params.counter_id}")
 
             counter = result.get("counter", {})
 
@@ -131,8 +129,7 @@ def register(mcp: FastMCP) -> None:
             result = await api_client.metrika_request(
                 "/management/v1/counters",
                 method="POST",
-                data=data
-            )
+                data=data)
 
             counter = result.get("counter", {})
             counter_id = counter.get('id')
@@ -197,8 +194,7 @@ Add this tracking code to your website:
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}",
                 method="PUT",
-                data=data
-            )
+                data=data)
 
             return f"Counter {params.counter_id} updated successfully."
 
@@ -223,8 +219,7 @@ Add this tracking code to your website:
         try:
             await api_client.metrika_request(
                 f"/management/v1/counter/{params.counter_id}",
-                method="DELETE"
-            )
+                method="DELETE")
 
             return f"Counter {params.counter_id} deleted successfully."
 
