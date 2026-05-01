@@ -110,6 +110,8 @@ def register(mcp: FastMCP) -> None:
                 "id": params.app_id,
                 "metrics": ",".join(params.metrics),
                 "group": params.group.value,
+                "limit": params.limit,
+                "offset": params.offset,
             }
 
             if params.dimensions:
@@ -118,6 +120,10 @@ def register(mcp: FastMCP) -> None:
                 query_params["date1"] = params.date1
             if params.date2:
                 query_params["date2"] = params.date2
+            if params.filters:
+                query_params["filters"] = params.filters
+            if params.sort:
+                query_params["sort"] = params.sort
 
             result = await api_client.appmetrica_request(
                 "/stat/v1/data/bytime",

@@ -179,6 +179,30 @@ class AppMetricaByTimeInput(BaseModel):
         default=AppMetricaGroupType.DAY,
         description="Time grouping: day, week, month, hour, minute",
     )
+    filters: str | None = Field(
+        default=None,
+        description=(
+            "Filter expression for data segmentation. Same syntax as "
+            "appmetrica_get_report; cross-prefix filters allowed (e.g. "
+            "filter ym:i:campaign==<id> together with metrics ym:i:devices "
+            "and dimensions ym:i:date)."
+        ),
+    )
+    sort: str | None = Field(
+        default=None,
+        description="Sort field. Prefix with '-' for descending",
+    )
+    limit: int = Field(
+        default=100,
+        ge=1,
+        le=100000,
+        description="Maximum number of rows to return",
+    )
+    offset: int = Field(
+        default=1,
+        ge=1,
+        description="Offset for pagination (1-based)",
+    )
     response_format: ResponseFormat = Field(
         default=ResponseFormat.MARKDOWN,
         description="Output format: 'markdown' or 'json'",
